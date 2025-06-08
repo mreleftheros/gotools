@@ -23,4 +23,13 @@ func TestValidatorSetError(t *testing.T) {
 
 func TestValidatorEmpty(t *testing.T) {
 	t.Parallel()
+	
+	testCases := [...]assert.Case{
+		{
+			Name: "empty field valid",
+			Args: map[string]any{
+				
+			},
+		}	
+	}
 }

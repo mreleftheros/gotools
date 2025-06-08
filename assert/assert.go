@@ -7,7 +7,7 @@ import (
 
 type Case struct {
 	Name     string
-	Args     map[string]any
+	Args     []any
 	Expected []any
 }
 
