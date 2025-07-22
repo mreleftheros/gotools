@@ -1,6 +1,7 @@
 package env
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -11,6 +12,20 @@ func ParseString(key, fallback string) string {
 		return fallback
 	}
 	return v
+}
+
+func ParseBool(key string, fallback bool) bool {
+	v := os.Getenv(key)
+	switch v {
+	case "":
+		return fallback
+	case "true":
+		return true
+	case "false":
+		return false
+	default:
+		panic(fmt.Errorf("environment key %s is invalid bool", key))
+	}
 }
 
 func ParseInt(key string, fallback int) int {
