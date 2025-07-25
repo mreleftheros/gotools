@@ -19,7 +19,7 @@ type Pagination struct {
 	SortSafeList []string
 }
 
-func NewPagination(qs url.Values, v *Validator, sortSafeList ...string) *Pagination {
+func NewPagination(q, v *Validator, sortSafeList ...string) *Pagination {
 	p := &Pagination{}
 
 	p.Page = ParseQueryInt(qs, "page", DEFAULT_PAGE, v)

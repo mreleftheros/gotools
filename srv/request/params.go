@@ -17,15 +17,15 @@ func ParsePathID(r *http.Request) (int64, error) {
 	return idParam, nil
 }
 
-type query struct {
+type Query struct {
 	url.Values
 }
 
-func NewQuery(values url.Values) *query {
-	return &query{values}
+func NewQuery(values url.Values) *Query {
+	return &Query{values}
 }
 
-func (q *query) ParseString(key string, defaultValue string) string {
+func (q *Query) ParseString(key string, defaultValue string) string {
 	v := q.Get(key)
 	if v == "" {
 		return defaultValue
@@ -33,7 +33,7 @@ func (q *query) ParseString(key string, defaultValue string) string {
 	return strings.ToLower(v)
 }
 
-func (q *query) ParseInt(key string, defaultValue int) int {
+func (q *Query) ParseInt(key string, defaultValue int) int {
 	val := q.Get(key)
 	if val == "" {
 		return defaultValue
@@ -47,7 +47,7 @@ func (q *query) ParseInt(key string, defaultValue int) int {
 	return i
 }
 
-func (q *query) ParseCSV(key string, defaultValue []string) []string {
+func (q *Query) ParseCSV(key string, defaultValue []string) []string {
 	v := q.Get(key)
 	if v == "" {
 		return defaultValue
