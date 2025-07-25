@@ -2,13 +2,10 @@ package request
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
-
-	"github.com/mreleftheros/gotools/srv/validator"
 )
 
 // ParsePathID parses the id value from the request path
@@ -20,33 +17,38 @@ func ParsePathID(r *http.Request) (int64, error) {
 	return idParam, nil
 }
 
-// ParseQueryString parses a string from a query key or returns default value.
-func ParseQueryString(qs url.Values, key string, defaultValue string) string {
-	v := qs.Get(key)
+type query struct {
+	url.Values
+}
+
+func NewQuery(values url.Values) *query {
+	return &query{values}
+}
+
+func (q *query) ParseString(key string, defaultValue string) string {
+	v := q.Get(key)
 	if v == "" {
 		return defaultValue
 	}
 	return strings.ToLower(v)
 }
 
-// ParseQueryInt parses key from query string and returns int or a default value if fails.
-func ParseQueryInt(qs url.Values, key string, defaultValue int, v *validator.Validator) int {
-	val := qs.Get(key)
+func (q *query) ParseInt(key string, defaultValue int) int {
+	val := q.Get(key)
 	if val == "" {
 		return defaultValue
 	}
 
 	i, err := strconv.Atoi(val)
 	if err != nil {
-		v.SetError(key, fmt.Sprintf("%s query parameter must be an integer", key))
+		return defaultValue
 	}
 
 	return i
 }
 
-// ParseQueryCSV parses comma seperated values in key and returns them on a slice or returns default value.
-func ParseQueryCSV(qs url.Values, key string, defaultValue []string) []string {
-	v := qs.Get(key)
+func (q *query) ParseCSV(key string, defaultValue []string) []string {
+	v := q.Get(key)
 	if v == "" {
 		return defaultValue
 	}

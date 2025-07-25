@@ -12,7 +12,7 @@ type Validator struct {
 	Errors map[string]string
 }
 
-func NewValidator() *Validator {
+func New() *Validator {
 	return &Validator{
 		Errors: make(map[string]string),
 	}
