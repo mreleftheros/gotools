@@ -38,8 +38,8 @@ func Write(l *slog.Logger, w http.ResponseWriter, r *http.Request, status int, d
 		w.Header()[k] = v
 	}
 
-	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 	_, err = w.Write(json)
 	if err != nil {
 		WriteInternalError(l, w, r, err, nil)
