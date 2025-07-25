@@ -2,6 +2,7 @@ package pagination
 
 import (
 	"math"
+	"net/url"
 	"strings"
 
 	"github.com/mreleftheros/gotools/srv/request"
@@ -21,11 +22,11 @@ type Pagination struct {
 	SortSafeList []string
 }
 
-func NewPagination(v *validator.Validator, q *request.Query, sortSafeList ...string) *Pagination {
+func NewPagination(v *validator.Validator, qs url.Values, sortSafeList ...string) *Pagination {
 	p := &Pagination{
-		Page:         q.ParseInt("page", DEFAULT_PAGE),
-		PageSize:     q.ParseInt("page_size", DEFAULT_PAGE_SIZE),
-		Sort:         q.ParseString("sort", DEFAULT_SORT),
+		Page:         request.ParseQueryInt(qs, "page", DEFAULT_PAGE),
+		PageSize:     request.ParseQueryInt(qs, "page_size", DEFAULT_PAGE_SIZE),
+		Sort:         request.ParseQueryString(qs, "sort", DEFAULT_SORT),
 		SortSafeList: sortSafeList,
 	}
 
