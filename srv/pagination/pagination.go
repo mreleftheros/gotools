@@ -22,7 +22,7 @@ type Pagination struct {
 	SortSafeList []string
 }
 
-func NewPagination(v *validator.Validator, qs url.Values, sortSafeList ...string) *Pagination {
+func New(v *validator.Validator, qs url.Values, sortSafeList ...string) *Pagination {
 	p := &Pagination{
 		Page:         request.ParseQueryInt(qs, "page", DEFAULT_PAGE),
 		PageSize:     request.ParseQueryInt(qs, "page_size", DEFAULT_PAGE_SIZE),
@@ -73,12 +73,12 @@ type PaginationMetadata struct {
 	TotalRecords int `json:"total_records,omitempty"`
 }
 
-func NewPaginationMetadata(totalRecords, page, pageSize int) PaginationMetadata {
+func NewPaginationMetadata(totalRecords, page, pageSize int) *PaginationMetadata {
 	if totalRecords == 0 {
-		return PaginationMetadata{}
+		return nil
 	}
 
-	return PaginationMetadata{
+	return &PaginationMetadata{
 		CurrentPage:  page,
 		PageSize:     pageSize,
 		FirstPage:    1,
