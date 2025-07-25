@@ -18,72 +18,71 @@ func New() *Validator {
 	}
 }
 
-func (v *Validator) SetError(key string, value string) {
-	v.Errors[key] = value
+func (v *Validator) SetError(key string, msg string) {
+	v.Errors[key] = msg
 }
 
 func (v *Validator) IsValid() bool {
 	return len(v.Errors) == 0
 }
 
-func (v *Validator) Check(expr bool, key string, value string) {
+func (v *Validator) Check(expr bool, key string, msg string) {
 	if !expr {
-		v.SetError(key, value)
+		v.SetError(key, msg)
 	}
 }
 
-func (v *Validator) NotEmpty(key string, s string) {
-	if s == "" {
-		v.SetError(key, fmt.Sprintf("%s cannot be empty", key))
+func (v *Validator) NotEmpty(value string, key string, msg string) {
+	if value == "" {
+		v.SetError(key, msg)
 	}
 }
 
-func (v *Validator) MinLength(key string, s string, n int) {
-	if utf8.RuneCountInString(s) < n {
-		v.SetError(key, fmt.Sprintf("%s must be minimum %d characters", key, n))
+func (v *Validator) MinLength(value string, minLen int, key string) {
+	if utf8.RuneCountInString(value) < minLen {
+		v.SetError(key, fmt.Sprintf("%s minimum length: %d", key, minLen))
 	}
 }
 
-func (v *Validator) MaxLength(key string, s string, n int) {
-	if utf8.RuneCountInString(s) > n {
-		v.SetError(key, fmt.Sprintf("%s must be maximum %d characters", key, n))
+func (v *Validator) MaxLength(value string, maxLen int, key string) {
+	if utf8.RuneCountInString(value) > maxLen {
+		v.SetError(key, fmt.Sprintf("%s maximum length: %d", key, maxLen))
 	}
 }
 
-func (v *Validator) BetweenLength(key string, s string, lower int, upper int) {
-	if utf8.RuneCountInString(s) < lower || utf8.RuneCountInString(s) > upper {
-		v.SetError(key, fmt.Sprintf("%s must be between %d-%d characters", key, lower, upper))
+func (v *Validator) BetweenLength(value string, minLen int, maxLen int, key string) {
+	if utf8.RuneCountInString(value) < minLen || utf8.RuneCountInString(value) > maxLen {
+		v.SetError(key, fmt.Sprintf("%s length must be between %d-%d", key, minLen, maxLen))
 	}
 }
 
-// f
-func (v *Validator) Min(key string, i int, l int) {
-	if i < l {
-		v.SetError(key, fmt.Sprintf("%s must be minimum %d", key, l))
+func (v *Validator) Min(value int, min int, key string) {
+	if value < min {
+		v.SetError(key, fmt.Sprintf("%s minimum: %d", key, min))
 	}
 }
 
-func (v *Validator) Max(key string, i int, l int) {
-	if i > l {
-		v.SetError(key, fmt.Sprintf("%s must be maximum %d", key, l))
+func (v *Validator) Max(value int, max int, key string) {
+	if value > max {
+		v.SetError(key, fmt.Sprintf("%s maximum: %d", key, max))
 	}
 }
 
-func (v *Validator) Between(key string, i int, lower int, upper int) {
-	if i < lower || i > upper {
-		v.SetError(key, fmt.Sprintf("%s must be between %d-%d", key, lower, upper))
+func (v *Validator) Between(value int, min int, max int, key string) {
+	if value < min || value > max {
+		v.SetError(key, fmt.Sprintf("%s must be between %d-%d", key, min, max))
 	}
 }
 
-func (v *Validator) MatchesRegexp(key string, s string, rx *regexp.Regexp) {
-	if !rx.MatchString(s) {
+func (v *Validator) MatchesRegexp(value string, rx *regexp.Regexp, key string) {
+	if !rx.MatchString(value) {
 		v.SetError(key, fmt.Sprintf("%s is invalid", key))
 	}
 }
 
-func In[T comparable](v T, values ...T) bool {
+func In[T comparable](value T, values ...T) bool {
 	for i := range values {
-		if v == values[i] {
+		if value == values[i] {
 			return true
 		}
 	}

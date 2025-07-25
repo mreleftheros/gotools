@@ -2,8 +2,10 @@ package pagination
 
 import (
 	"math"
-	"net/url"
 	"strings"
+
+	"github.com/mreleftheros/gotools/srv/request"
+	"github.com/mreleftheros/gotools/srv/validator"
 )
 
 const (
@@ -19,23 +21,19 @@ type Pagination struct {
 	SortSafeList []string
 }
 
-func NewPagination(q, v *Validator, sortSafeList ...string) *Pagination {
-	p := &Pagination{}
+func NewPagination(v *validator.Validator, q *request.Query, sortSafeList ...string) *Pagination {
+	p := &Pagination{
+		Page:         q.ParseInt("page", DEFAULT_PAGE),
+		PageSize:     q.ParseInt("page_size", DEFAULT_PAGE_SIZE),
+		Sort:         q.ParseString("sort", DEFAULT_SORT),
+		SortSafeList: sortSafeList,
+	}
 
-	p.Page = ParseQueryInt(qs, "page", DEFAULT_PAGE, v)
-	p.PageSize = ParseQueryInt(qs, "page_size", DEFAULT_PAGE_SIZE, v)
-	p.Sort = ParseQueryString(qs, "sort", DEFAULT_SORT)
-	p.SortSafeList = sortSafeList
-
-	p.Validate(v)
+	v.Between(p.Page, 1, 10_000_000, "page query")
+	v.Between(p.PageSize, 1, 100, "page size query")
+	v.Check(validator.In(p.Sort, p.SortSafeList...), "sort query", "sort query is not permitted")
 
 	return p
-}
-
-func (p *Pagination) Validate(v *Validator) {
-	v.Between("page", p.Page, 1, 10_000_000)
-	v.Between("pageSize", p.PageSize, 1, 100)
-	v.Check(validator.In(p.Sort, p.SortSafeList...), "sort", "sort parameter is not permitted")
 }
 
 func (p *Pagination) GetSortColumn() string {
@@ -51,18 +49,18 @@ func (p *Pagination) GetSortColumn() string {
 	panic("unsafe sort query parameter " + p.Sort)
 }
 
-func (p *Pagination) sortDirection() string {
+func (p *Pagination) SortDirection() string {
 	if strings.HasSuffix(p.Sort, "_asc") {
 		return "ASC"
 	}
 	return "DESC"
 }
 
-func (p *Pagination) limit() int {
+func (p *Pagination) Limit() int {
 	return p.PageSize
 }
 
-func (p *Pagination) offset() int {
+func (p *Pagination) Offset() int {
 	return (p.Page - 1) * p.PageSize
 }
 
