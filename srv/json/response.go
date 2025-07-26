@@ -23,46 +23,38 @@ func NewErrorResponse(message string, errors map[string]string) errorResponse {
 	return errorResponse{message, errors}
 }
 
-func logError(l *slog.Logger, r *http.Request, err error) {
-	l.Error(err.Error(), "method", r.Method, "path", r.URL.Path)
+func logError(r *http.Request, err error) {
+	slog.Error(err.Error(), slog.String("method", r.Method), slog.String("path", r.URL.Path))
 }
 
-func Write(l *slog.Logger, w http.ResponseWriter, r *http.Request, status int, data any, headers http.Header) {
+func Write(w http.ResponseWriter, r *http.Request, status int, data any) {
 	json, err := json.Marshal(data)
 	if err != nil {
-		WriteInternalError(l, w, r, err, nil)
+		WriteInternalError(w, r, err)
 		return
-	}
-
-	for k, v := range headers {
-		w.Header()[k] = v
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_, err = w.Write(json)
 	if err != nil {
-		WriteInternalError(l, w, r, err, nil)
+		WriteInternalError(w, r, err)
 	}
 }
 
-func WriteInternalError(l *slog.Logger, w http.ResponseWriter, r *http.Request, err error, headers http.Header) {
-	logError(l, r, err)
+func WriteInternalError(w http.ResponseWriter, r *http.Request, err error) {
+	logError(r, err)
 	data := NewErrorResponse(http.StatusText(http.StatusInternalServerError), nil)
 	// Write(w, 500, NewErrorResponse(http.StatusText(http.StatusInternalServerError), nil), headers)
 	json, err := json.Marshal(data)
 	if err != nil {
-		logError(l, r, err)
-	}
-
-	for k, v := range headers {
-		w.Header()[k] = v
+		logError(r, err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
 	_, err = w.Write(json)
 	if err != nil {
-		logError(l, r, err)
+		logError(r, err)
 	}
 }
