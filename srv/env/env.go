@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func ParseString(key, fallback string) string {
@@ -40,4 +41,12 @@ func ParseInt(key string, fallback int) int {
 	}
 
 	return i
+}
+
+func ParseCSV(key string, fallback []string) []string {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	return strings.Split(v, ",")
 }
