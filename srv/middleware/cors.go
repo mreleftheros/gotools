@@ -2,15 +2,15 @@ package middleware
 
 import "net/http"
 
-func enableCORS(next http.Handler) http.Handler {
+func EnableCORS(origins []string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Vary", "Origin")
 		w.Header().Set("Vary", "Access-Control-Request-Method")
 
 		originHeader := r.Header.Get("Origin")
 		if originHeader != "" {
-			for i := range app.config.cors.trustedOrigins {
-				if originHeader == app.config.cors.trustedOrigins[i] {
+			for i := range origins {
+				if originHeader == origins[i] {
 					w.Header().Set("Access-Control-Allow-Origin", originHeader)
 
 					if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
