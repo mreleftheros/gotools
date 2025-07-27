@@ -2,17 +2,15 @@ package password
 
 import (
 	"crypto/subtle"
-	"encoding/base64"
 
 	"golang.org/x/crypto/argon2"
 )
 
-func HashPassword(password string, salt string) string {
-	h := argon2.IDKey([]byte(password), []byte(salt), 2, 19*1024, 1, 32)
-	return base64.RawStdEncoding.EncodeToString(h)
+func Hash(password string, salt string) []byte {
+	return argon2.IDKey([]byte(password), []byte(salt), 2, 19*1024, 1, 32)
 }
 
-func ComparePassword(provided string, salt string, stored string) bool {
-	h := HashPassword(provided, salt)
-	return subtle.ConstantTimeCompare([]byte(h), []byte(stored)) == 1
+func Compare(provided string, salt string, stored []byte) bool {
+	h := Hash(provided, salt)
+	return subtle.ConstantTimeCompare(h, stored) == 1
 }
