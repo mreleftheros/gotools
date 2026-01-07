@@ -3,7 +3,7 @@ package validator
 import (
 	"testing"
 
-	"github.com/mreleftheros/gotools/assert"
+	"github.com/mreleftheros/gotools/testutil"
 )
 
 func TestValidator(t *testing.T) {
@@ -18,11 +18,11 @@ func TestValidatorSetError(t *testing.T) {
 	if vLen := len(v.Errors); vLen != 1 {
 		t.Errorf("expected length: %d, actual: %d\n", 1, vLen)
 	}
-	assert.Equal(t, "Name cannot be empty", v.Errors["name"])
+	testutil.Equal(t, "Name cannot be empty", v.Errors["name"])
 }
 
 func TestValidatorIsValid(t *testing.T) {
-	testcases := []assert.Case{
+	testcases := []testutil.Case{
 		{
 			Name: "valid",
 			Args: []any{&Validator{
@@ -53,8 +53,8 @@ func TestValidatorIsValid(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.Name, func(t *testing.T) {
-			assert.Equal(t, tc.Expected[0].(int), len(tc.Args[0].(*Validator).Errors))
-			assert.Equal(t, tc.Expected[1].(bool), tc.Args[0].(*Validator).IsValid())
+			testutil.Equal(t, tc.Expected[0].(int), len(tc.Args[0].(*Validator).Errors))
+			testutil.Equal(t, tc.Expected[1].(bool), tc.Args[0].(*Validator).IsValid())
 		})
 	}
 }
@@ -62,7 +62,7 @@ func TestValidatorIsValid(t *testing.T) {
 func TestValidatorEmpty(t *testing.T) {
 	t.Parallel()
 
-	testCases := [...]assert.Case{
+	testCases := [...]testutil.Case{
 		{
 			Name:     "empty field valid",
 			Args:     []any{""},
@@ -80,8 +80,8 @@ func TestValidatorEmpty(t *testing.T) {
 			v := NewValidator()
 			v.Empty(tc.Args[0].(string), "name")
 
-			assert.Equal(t, tc.Expected[0].(int), len(v.Errors))
-			assert.Equal(t, tc.Expected[1].(bool), v.IsValid())
+			testutil.Equal(t, tc.Expected[0].(int), len(v.Errors))
+			testutil.Equal(t, tc.Expected[1].(bool), v.IsValid())
 		})
 	}
 }
