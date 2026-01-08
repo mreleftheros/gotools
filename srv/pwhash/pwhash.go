@@ -11,96 +11,90 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-type HashParams struct {
-	Argon2Version int
-	Hash          []byte
-	Salt          []byte
-	T             uint32 // times
-	M             uint32 // memory
-	P             uint8  // threads
-	KeyLen        uint32
+type hashParams struct {
+	argon2Version int
+	hashBytes     []byte
+	saltBytes     []byte
+	t             uint32 // times
+	m             uint32 // memory
+	p             uint8  // parallelism
+	keyLen        uint32
+}
+
+func newHashParams() *hashParams {
+	return &hashParams{
+		argon2Version: argon2.Version,
+		t:             2,
+		m:             19 * 1024,
+		p:             1,
+		keyLen:        32,
+	}
 }
 
 func Hash(password string) (string, error) {
-	hp := &HashParams{
-		Argon2Version: argon2.Version,
-		T:             2,
-		M:             19 * 1024,
-		P:             1,
-		KeyLen:        32,
-	}
-
-	salt, err := genSalt(16)
-	if err != nil {
+	hp := newHashParams()
+	saltBytes := make([]byte, 16)
+	if _, err := rand.Read(saltBytes); err != nil {
 		return "", err
 	}
-	hp.Salt = salt
-	hp.Hash = argon2.IDKey([]byte(password), hp.Salt, hp.T, hp.M, hp.P, hp.KeyLen)
+	hp.saltBytes = saltBytes
+	hp.hashBytes = argon2.IDKey([]byte(password), hp.saltBytes, hp.t, hp.m, hp.p, hp.keyLen)
 
 	return fmt.Sprintf(
 		"$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s",
-		hp.Argon2Version,
-		hp.M,
-		hp.T,
-		hp.P,
-		base64.RawStdEncoding.EncodeToString(hp.Salt),
-		base64.RawStdEncoding.EncodeToString(hp.Hash),
+		hp.argon2Version,
+		hp.m,
+		hp.t,
+		hp.p,
+		base64.RawStdEncoding.EncodeToString(hp.saltBytes),
+		base64.RawStdEncoding.EncodeToString(hp.hashBytes),
 	), nil
 }
 
-func Verify(storedHash, password string) (bool, error) {
-	hp, err := parseHash(storedHash)
+func Verify(h, password string) (bool, error) {
+	hp, err := parseHash(h)
 	if err != nil {
 		return false, err
 	}
 
 	hash := argon2.IDKey(
 		[]byte(password),
-		hp.Salt,
-		hp.T,
-		hp.M,
-		hp.P,
-		hp.KeyLen,
+		hp.saltBytes,
+		hp.t,
+		hp.m,
+		hp.p,
+		hp.keyLen,
 	)
 
-	return subtle.ConstantTimeCompare(hp.Hash, hash) == 1, nil
+	return subtle.ConstantTimeCompare(hp.hashBytes, hash) == 1, nil
 }
 
-func genSalt(size int) ([]byte, error) {
-	buf := make([]byte, size)
-	if _, err := rand.Read(buf); err != nil {
-		return nil, err
-	}
-
-	return buf, nil
-}
-
-func parseHash(encodedHash string) (params *HashParams, err error) {
-	vals := strings.Split(encodedHash, "$")
+func parseHash(h string) (params *hashParams, err error) {
+	vals := strings.Split(h, "$")
 	if len(vals) != 6 {
 		return nil, errors.New("invalid hash format")
 	}
 
-	hp := &HashParams{}
+	hp := &hashParams{}
 	if !strings.HasPrefix(vals[1], "argon2id") {
 		return nil, errors.New("unsupported algorithm")
 	}
-	fmt.Sscanf(vals[2], "v=%d", &hp.Argon2Version)
+	fmt.Sscanf(vals[2], "v=%d", &hp.argon2Version)
 
-	fmt.Sscanf(vals[3], "m=%d,t=%d,p=%d", &hp.M, &hp.T, &hp.P)
+	fmt.Sscanf(vals[3], "m=%d,t=%d,p=%d", &hp.m, &hp.t, &hp.p)
 
-	salt, err := base64.RawStdEncoding.DecodeString(vals[4])
+	saltBytes, err := base64.RawStdEncoding.DecodeString(vals[4])
 	if err != nil {
 		return nil, err
 	}
-	hp.Salt = salt
+	hp.saltBytes = saltBytes
 
-	hash, err := base64.RawStdEncoding.DecodeString(vals[5])
+	hashBytes, err := base64.RawStdEncoding.DecodeString(vals[5])
 	if err != nil {
 		return nil, err
 	}
-	hp.Hash = hash
-	hp.KeyLen = uint32(len(hash))
+	hp.hashBytes = hashBytes
+	hp.keyLen = uint32(len(hashBytes))
 
 	return hp, nil
 }
