@@ -41,6 +41,7 @@ func main() {
 				continue
 			}
 			users[username] = User{username, h}
+			fmt.Println(h)
 			fmt.Println("Signup successful!")
 		case "login":
 			fmt.Println("Login...")
